@@ -5,39 +5,51 @@ import github.com.tcw.ibsen.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 public class IbsenClient {
 
-    private final String host;
-    private final int port;
     private final IbsenGrpc.IbsenBlockingStub blockingStub;
-    private final IbsenGrpc.IbsenStub asyncStub;
+    //private final IbsenGrpc.IbsenStub asyncStub;
 
     public IbsenClient(String host, int port) {
-        this.host = host;
-        this.port = port;
         ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder
                 .forAddress(host, port)
                 .usePlaintext();
         ManagedChannel channel = channelBuilder.build();
         blockingStub = IbsenGrpc.newBlockingStub(channel);
-        asyncStub = IbsenGrpc.newStub(channel);
+        // asyncStub = IbsenGrpc.newStub(channel); Todo: for testing streaming write
     }
 
-    public void createTopic(String topic) {
+    public boolean create(String topic) {
         Topic request = Topic.newBuilder().setName(topic).build();
-        CreateStatus createStatus = blockingStub.create(request);
-        if (!createStatus.getCreated()) {
-            throw new IllegalStateException("Unable to create topic " + topic);
-        }
+        return blockingStub.create(request).getCreated();
+    }
+
+    public boolean drop(String topic) {
+        Topic request = Topic.newBuilder().setName(topic).build();
+        return blockingStub.drop(request).getDropped();
+    }
+
+    public TopicsStatus status() {
+        Empty empty = Empty.newBuilder().build();
+        return blockingStub.status(empty);
     }
 
     public long write(String topic, List<ByteString> entries) {
         InputEntries inputEntries = InputEntries.newBuilder().setTopic(topic).addAllEntries(entries).build();
         WriteStatus writeStatus = blockingStub.write(inputEntries);
         return writeStatus.getWrote();
+    }
+
+    public Iterator<Entry> read(String topic) {
+        return read(topic, 0, 1000);
+    }
+
+    public Iterator<Entry> read(String topic, long offset) {
+        return read(topic, offset, 1000);
     }
 
     public Iterator<Entry> read(String topic, long offset, int batchSize) {
@@ -52,7 +64,7 @@ public class IbsenClient {
     public static class EntryIterator<Entry> implements Iterator<IbsenClient.Entry> {
 
         private final Iterator<OutputEntries> iterator;
-        private Iterator<ByteString> batchIterator;
+        private Iterator<ByteString> batchIterator = Collections.emptyIterator();
         private long currentOffset;
 
         EntryIterator(Iterator<OutputEntries> iterator) {
@@ -61,18 +73,17 @@ public class IbsenClient {
 
         @Override
         public boolean hasNext() {
-            return iterator.hasNext() && batchIterator.hasNext();
+            return iterator.hasNext() || batchIterator.hasNext();
         }
 
         @Override
         public IbsenClient.Entry next() {
-
-            if (batchIterator == null || !batchIterator.hasNext()) {
+            if (!batchIterator.hasNext()) {
                 if (iterator.hasNext()) {
                     OutputEntries batch = iterator.next();
                     batchIterator = batch.getEntriesList().iterator();
                     long batchSize = batch.getEntriesList().size();
-                    currentOffset = batch.getOffset() - batchSize;
+                    currentOffset = batch.getOffset() - (batchSize - 1);
                 }
             }
             return new IbsenClient.Entry(currentOffset++, batchIterator.next());
@@ -96,5 +107,4 @@ public class IbsenClient {
             return entry;
         }
     }
-
 }
