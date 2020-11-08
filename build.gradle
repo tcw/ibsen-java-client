@@ -30,11 +30,12 @@ dependencies {
     implementation 'io.grpc:grpc-protobuf:1.33.0'
     implementation 'io.grpc:grpc-stub:1.33.0'
     compileOnly 'org.apache.tomcat:annotations-api:6.0.53' // necessary for Java 9+
-    testCompile "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
-    testCompile "org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion"
+    testImplementation "org.testcontainers:testcontainers:1.15.0"
+    testImplementation "org.testcontainers:junit-jupiter:1.15.0"
+    testImplementation "org.testcontainers:junit-jupiter:1.15.0"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
-    testCompile "org.testcontainers:testcontainers:1.15.0"
-    testCompile "org.testcontainers:junit-jupiter:1.15.0"
 }
 
 

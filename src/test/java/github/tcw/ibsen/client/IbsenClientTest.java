@@ -4,35 +4,24 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
-import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
-import org.testcontainers.containers.wait.strategy.WaitStrategy;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-
-import java.util.function.Consumer;
 
 @Testcontainers
 class IbsenClientTest {
 
     private IbsenClient client;
-    GenericContainer<?> ibsenContainer;
 
+    @Container
+    GenericContainer<?> ibsenContainer = new GenericContainer<>(DockerImageName.parse("ibsen"))
+            .withExposedPorts(50001)
+            .waitingFor(new LogMessageWaitStrategy().withRegEx(".*Ibsen grpc server started.*"));
 
     @BeforeEach
     public void setUp() {
-        ibsenContainer = new GenericContainer<>(DockerImageName.parse("ibsen"))
-                .withExposedPorts(50001)
-                .withLogConsumer(new Consumer<OutputFrame>() {
-                    @Override
-                    public void accept(OutputFrame outputFrame) {
-                        System.out.println(outputFrame.getUtf8String());
-                    }
-                })
-                .waitingFor(new HostPortWaitStrategy());
-        ibsenContainer.start();
         String address = ibsenContainer.getHost();
         Integer port = ibsenContainer.getMappedPort(50001);
 
