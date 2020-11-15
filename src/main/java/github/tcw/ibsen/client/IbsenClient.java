@@ -64,8 +64,7 @@ public class IbsenClient {
     public static class EntryIterator<Entry> implements Iterator<IbsenClient.Entry> {
 
         private final Iterator<OutputEntries> iterator;
-        private Iterator<ByteString> batchIterator = Collections.emptyIterator();
-        private long currentOffset;
+        private Iterator<github.com.tcw.ibsen.Entry> batchIterator = Collections.emptyIterator();
 
         EntryIterator(Iterator<OutputEntries> iterator) {
             this.iterator = iterator;
@@ -82,11 +81,10 @@ public class IbsenClient {
                 if (iterator.hasNext()) {
                     OutputEntries batch = iterator.next();
                     batchIterator = batch.getEntriesList().iterator();
-                    long batchSize = batch.getEntriesList().size();
-                    currentOffset = batch.getOffset() - (batchSize - 1);
                 }
             }
-            return new IbsenClient.Entry(currentOffset++, batchIterator.next());
+            github.com.tcw.ibsen.Entry entry = batchIterator.next();
+            return new IbsenClient.Entry(entry.getOffset(),entry.getContent());
         }
     }
 
