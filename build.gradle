@@ -23,18 +23,17 @@ test {
     useJUnitPlatform()
 }
 
-def junitJupiterVersion = '5.4.2'
+def junitJupiterVersion = '5.8.2'
 
 dependencies {
-    implementation 'io.grpc:grpc-netty-shaded:1.33.0'
-    implementation 'io.grpc:grpc-protobuf:1.33.0'
-    implementation 'io.grpc:grpc-stub:1.33.0'
+    implementation 'io.grpc:grpc-netty-shaded:1.44.0'
+    implementation 'io.grpc:grpc-protobuf:1.44.0'
+    implementation 'io.grpc:grpc-stub:1.44.0'
     compileOnly 'org.apache.tomcat:annotations-api:6.0.53' // necessary for Java 9+
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion"
-    testImplementation "org.testcontainers:testcontainers:1.15.0"
-    testImplementation "org.testcontainers:junit-jupiter:1.15.0"
-    testImplementation "org.testcontainers:junit-jupiter:1.15.0"
+    testImplementation 'org.testcontainers:testcontainers:1.16.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.16.3'
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
 }
 
